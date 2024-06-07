@@ -4,6 +4,7 @@ import android.health.connect.datatypes.units.Percentage
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.agr.trainingcalculator.databinding.ActivityMainBinding
@@ -25,6 +26,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setListeners()
+        setNightModeIndicator()
     }
 
     private fun setListeners(){
@@ -42,12 +44,65 @@ class MainActivity : AppCompatActivity() {
             buttonDivision.setOnClickListener{onOperatorClicked(Operator.DIVISION)}
             buttonEquals.setOnClickListener{onEqualsClicked()}
             buttonAllClear.setOnClickListener{onAllClearClicked()}
+            buttonPlusMinus.setOnClickListener{onPlusMinusClicked()}
+            buttonPercentage.setOnClickListener{onPercentageClicked()}
+            imageNightMode.setOnClickListener{toggleNightMode()}
         }
 
+    }
+    private fun toggleNightMode() {
+        if(AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        }
+        recreate()
+    }
+
+    private fun setNightModeIndicator() {
+        if(AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES) {
+            binding.imageNightMode.setImageResource(R.drawable.ic_sun)
+        }else{
+            binding.imageNightMode.setImageResource(R.drawable.ic_moon)
+        }
+    }
+
+    private fun onPercentageClicked() {
+        if(inputValue2 == null){
+            val percentage = getInputValue1() / 100
+            inputValue1 = percentage
+            equation.clear().append(percentage)
+            updateInputOnDisplay()
+        }else{
+            val percentageOfValue1 = (getInputValue1() * getInputValue2()) / 100
+            val percentageOfValue2 = getInputValue2() / 100
+            result = when (requireNotNull(currentOperator)) {
+                Operator.ADDITION ->getInputValue1() + percentageOfValue1
+                Operator.SUBTRACTION -> getInputValue1() - percentageOfValue1
+                Operator.MULTIPLICATION -> getInputValue1() * percentageOfValue2
+                Operator.DIVISION -> getInputValue1() / percentageOfValue2
+            }
+            equation.clear().append(ZERO)
+            updateResultOnDisplay(isPercentage =  true)
+            inputValue1 = result
+            result = null
+            inputValue2 = null
+            currentOperator = null
+        }
     }
     private fun onOperatorClicked(operator: Operator) {
         onEqualsClicked()
         currentOperator = operator
+    }
+
+    private fun onPlusMinusClicked() {
+        if(equation.startsWith(MINUS)) {
+            equation.deleteCharAt(0)
+        }else {
+            equation.insert(0,MINUS)
+        }
+        setInput()
+        updateInputOnDisplay()
     }
 
     private fun onAllClearClicked() {
